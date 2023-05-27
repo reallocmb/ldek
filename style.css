@@ -1,0 +1,103 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #634B66;
+}
+
+hr {
+    padding: 0;
+    margin: 0;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-bottom: 10px;
+    border: none;
+    height: 2px;
+    background-color: black;
+}
+
+img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 20%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+h1 {
+    margin: 0;
+    padding: 0;
+    padding-left: 20px;
+}
+
+p {
+    margin: 0;
+    padding: 0;
+}
+
+#dek-text {
+    margin-left: 10px;
+    margin-right: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 15px;
+}
+
+.dek-object {
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+.source-word, .destination-word {
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+}
+
+.word {
+    min-height: 19px;
+    text-align: left;
+    padding: 5px 20px 5px 10px;
+}
+
+.word-pointed {
+    background-color: gray;
+}
+
+#status-line {
+    position: fixed;
+    bottom: 0px;
+    display: flex;
+    bottom: 0px;
+    background-color: gray;
+    min-width: 100vw;
+    justify-content: space-between;
+}
+
+/*
+button {
+    background-color: gray;
+    border: none;
+}
+
+button:hover {
+    background-color: green;
+}
+
+#buttons {
+    margin-right: 0px;
+}
+*/
+
+#dek-list {
+    position: fixed;
+    min-width: 200px;
+    min-height: 200px;
+    max-width: 200px;
+    max-height: 200px;
+    background-color: gray;
+    right: 15px;
+    bottom: 30px;
+    overflow: scroll;
+}
