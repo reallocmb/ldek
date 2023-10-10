@@ -1,0 +1,32 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-std=gnu89",
+      "-g",
+      "-c",
+      "-o",
+      "obj/main.o",
+      "src/main.c"
+    ],
+    "directory": "/home/mb/ws/c/ldek",
+    "file": "/home/mb/ws/c/ldek/src/main.c",
+    "output": "/home/mb/ws/c/ldek/obj/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-std=gnu89",
+      "-g",
+      "-c",
+      "-o",
+      "obj/redbas/redbas.o",
+      "src/redbas/redbas.c"
+    ],
+    "directory": "/home/mb/ws/c/ldek",
+    "file": "/home/mb/ws/c/ldek/src/redbas/redbas.c",
+    "output": "/home/mb/ws/c/ldek/obj/redbas/redbas.o"
+  }
+]

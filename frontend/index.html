@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!--link href="style.css" rel="stylesheet"-->
+        <link href="ldek_style.css" rel="stylesheet">
+        <link rel="icon" type="image/png" href="res/icon.png" sizes="32x32">
+    </head>
+    <body>
+        <img src="res/icon.png"/><hr>
+        <div id="dek-text">
+        </div>
+        <div id="status-line">
+            <p id="mode-display">NORMAL</p>
+            <label id="file-name"></label>
+            <div id="buttons">
+                <button onclick="dek_new(event);">NEW</button>
+                <button onclick="dek_save(event)">SAVE</button>
+                <button onclick="dek_open(event)">OPEN</button>
+                <button onclick="dek_delete(event)">DEL</button>
+                <!--
+                <button onclick="dek_save_file(event)">SAVE_FILE</button>
+                -->
+            </div>
+        </div>
+    </body>
+    <!--<script src="rewrite.js"></script>-->
+    <script src="ldek.js"></script>
+</html>
