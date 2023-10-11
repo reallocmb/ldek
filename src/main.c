@@ -5,6 +5,7 @@
 #include<unistd.h>
 #include<netdb.h>
 #include<dirent.h>
+#include<sys/stat.h>
 
 #define REQUEST_SIZE_MAX 2024
 
@@ -284,6 +285,7 @@ void response_send(int8_t socket_client, Request *request)
 
 int main(int argc, char **argv)
 {
+    mkdir("data", 0777);
     chdir("frontend");
 
     Request request;
