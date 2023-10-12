@@ -231,8 +231,7 @@ let dek_save = function()
     xhr.onreadystatechange = function () {
         if (xhr.readyState === XMLHttpRequest.DONE) {
             if (xhr.status === 204) {
-                console.log('POST-Request erfolgreich');
-                console.log('Antwort vom Server:', xhr.responseText);
+                document.querySelector('info').textContent = 'send succsessful';
             } else {
                 console.error('Fehler beim POST-Request');
             }
