@@ -315,7 +315,10 @@ int main(int argc, char **argv)
             response_send(socket_client, &request);
         }
         else
+        {
+            write(socket_client, "HTTP/1.1 404 Not Found\r\n\r\n", 26);
             fprintf(stdout, "Request was not valid\n");
+        }
         close(socket_client);
     }
 
