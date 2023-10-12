@@ -7,7 +7,7 @@
 #include<dirent.h>
 #include<sys/stat.h>
 
-#define REQUEST_SIZE_MAX 2024
+#define REQUEST_SIZE_MAX 1048576
 
 typedef struct Header {
     char *name;
@@ -105,6 +105,9 @@ bool request_parse(Request *request)
     Header header;
     if (header_find(&header, request->data, header_data_size, "Content-Length"))
         sscanf(header.value, "%u", &request->payload_size);
+    else
+        request->payload_size = 0;
+
 
     return true;
 }
@@ -135,9 +138,10 @@ void response_send_chunk(int8_t client_socket, char *data, uint32_t data_size)
 void response_send_file_chunked(int8_t client_socket, char *path)
 {
     FILE *f = fopen(path, "r");
-    char buffer[2048];
+#define FILE_BUFFER_MAX 2048
+    char buffer[FILE_BUFFER_MAX];
     uint32_t bytes;
-    while ((bytes = fread(buffer, 1, 2048, f)))
+    while ((bytes = fread(buffer, 1, FILE_BUFFER_MAX, f)))
     {
         buffer[bytes] = 0;
         response_send_chunk(client_socket, buffer, bytes);
@@ -210,12 +214,10 @@ void response_send(int8_t socket_client, Request *request)
     {
         if (strncmp(request->data + 5, "/save", 5) == 0)
         {
-            fprintf(stdout, "Payload %.*s\n", request->payload_size, request->payload);
-
             char *path;
             path = strtok(request->payload, ";");
             char *data = strtok(NULL, ";");
-            printf("%s\n%s\n", path, data);
+            printf("data length: %ld\n", strlen(data));
 
             chdir("../data");
             FILE *f = fopen(path, "w+");
@@ -234,6 +236,7 @@ void response_send(int8_t socket_client, Request *request)
             struct dirent *ptr;
 
             write(socket_client, "HTTP/1.1 302 Found\r\n", 20);
+            response_send_header(socket_client, "Content-Type", "text/plain");
             response_send_header(socket_client, "Transfer-Encoding", "chunked");
             write(socket_client, "\r\n", 2);
 
@@ -262,8 +265,9 @@ void response_send(int8_t socket_client, Request *request)
 
         if (strncmp(request->data + 5, "/load", 5) == 0)
         {
-            write(socket_client, "HTTP/1.1 302 Found\r\n", 20);
+            write(socket_client, "HTTP/1.1 200 Ok\r\n", 17);
             response_send_header(socket_client, "Transfer-Encoding", "chunked");
+            response_send_header(socket_client, "Content-Type", "text/plain");
             write(socket_client, "\r\n", 2);
 
             chdir("../data");
@@ -307,6 +311,7 @@ int main(int argc, char **argv)
             fprintf(stdout, "Unexpected disconnection\n");
         else if (request_parse(&request))
         {
+            fprintf(stdout, "payload size: %d\n", request.payload_size);
             response_send(socket_client, &request);
         }
         else

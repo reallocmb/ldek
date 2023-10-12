@@ -248,6 +248,7 @@ let dek_open = function()
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === XMLHttpRequest.DONE) {
@@ -286,10 +287,11 @@ let dek_open = function()
 
                         const xhr = new XMLHttpRequest();
                         xhr.open('POST', url, true);
+                        xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
 
                         xhr.onreadystatechange = function () {
                             if (xhr.readyState === XMLHttpRequest.DONE) {
-                                if (xhr.status === 302) {
+                                if (xhr.status === 200) {
                                     console.log('POST-Request erfolgreich');
                                     console.log('Antwort vom Server:', xhr.responseText);
 
@@ -330,6 +332,7 @@ let dek_delete = function(name) {
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === XMLHttpRequest.DONE) {
