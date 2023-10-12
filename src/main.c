@@ -17,7 +17,6 @@ typedef struct Header {
 typedef struct Request {
     char ip_address[100];
     char data[REQUEST_SIZE_MAX + 1];
-    Header *header;
     uint32_t payload_size;
     char *payload;
 } Request;
@@ -49,7 +48,7 @@ int8_t server_init(uint16_t port)
 
     fprintf(stdout, "Bind socket to adress on pornt: %hu\n", port);
 
-    listen(socket_server, 10);
+    listen(socket_server, 1);
     fprintf(stdout, "Listen to connections...\n");
 
     return socket_server;
