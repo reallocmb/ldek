@@ -23,7 +23,7 @@
 #define RESPONSE_CODE_403 "HTTP/1.1 403 Forbidden"
 #define RESPONSE_CODE_404 "HTTP/1.1 404 Not Found"
 
-#define REQUEST_SIZE_MAX 2024
+#define REQUEST_SIZE_MAX 5000
 
 typedef struct ContentDynamic {
     char *identify;
@@ -417,8 +417,11 @@ void request_send(int16_t socket_client, Request *request)
 
             chdir("../data");
             FILE *f = fopen(path, "w+");
-            fwrite(data, sizeof(*data), strlen(data), f);
-            fclose(f);
+            if (f != NULL)
+            {
+                fwrite(data, sizeof(*data), strlen(data), f);
+                fclose(f);
+            }
             chdir("../frontend");
 
             response_send_code(socket_client, RESPONSE_CODE_201);
