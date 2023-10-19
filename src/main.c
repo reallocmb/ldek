@@ -181,7 +181,7 @@ void response_send_file_chunked_dynamic(int8_t socket_client, char *path, Conten
     char buffer[BUFFER_MAX];
 
     uint32_t i = 0;
-    char c;
+    int32_t c;
     while ((c = fgetc(f)) != EOF)
     {
         if (c == '{')
