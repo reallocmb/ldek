@@ -554,7 +554,10 @@ int main(int argc, char **argv)
         uint16_t bytes_received = read(socket_client, request.data, REQUEST_SIZE_MAX);
         request.data[bytes_received] = 0;
         if (bytes_received < 1)
+        {
             fprintf(LOG_FILE, "Unexpected disconnection\n");
+            fprintf(stdout, "%s\n", request.data);
+        }
         else if (request_parse(&request))
         {
             request_send(socket_client, &request);
