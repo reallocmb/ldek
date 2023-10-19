@@ -207,6 +207,7 @@ window.addEventListener('keydown', function (e) {
 
 let dek_new = function()
 {
+    document.querySelector('#dek-open').innerHTML = "";
     document.querySelector('#dek-text').innerHTML = "";
     document.querySelector('#file-name').textContent = prompt();
     dek_object_append();

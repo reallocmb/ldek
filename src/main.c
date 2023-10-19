@@ -480,7 +480,7 @@ void request_send(int16_t socket_client, Request *request)
 
         if (strncmp(request->data + 5, "/delete", 7) == 0)
         {
-            content_dynamic_func_set(&content_dynamic_dek_text, index_html_content_dynamic_open_func);
+            content_dynamic_func_set(&content_dynamic_dek_open, index_html_content_dynamic_open_func);
 
             chdir("../data");
             fprintf(stdout, "delete test: %s\n", request->payload);
