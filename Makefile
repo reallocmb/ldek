@@ -6,7 +6,7 @@ compiler = gcc $(develop_flags)
 
 version = gnu89
 
-release_flags = -std=$(version) -O3
+release_flags = -std=$(version) -O3 -DRELEASE
 
 develop_flags = -Wall -std=$(version) -g
 

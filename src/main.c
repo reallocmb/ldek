@@ -62,7 +62,7 @@ int8_t server_init(uint16_t port)
     addr.sin_port = htons(port);
 
 #ifdef RELEASE
-    if (bind(server_socket, (struct sockaddr *)&addr, sizeof(addr)))
+    if (bind(socket_server, (struct sockaddr *)&addr, sizeof(addr)))
     {
         fprintf(stderr, "Failed to bind() on port: %hu\n", port);
         exit(1);
