@@ -254,6 +254,8 @@ bool request_parse(Request *request)
     Header header;
     if (header_find(&header, request->data, header_data_size, "Content-Length"))
         sscanf(header.value, "%u", &request->payload_size);
+    else
+        request->payload_size = 0;
 
     if (request->payload - request->data + request->payload_size >= REQUEST_SIZE_MAX)
     {
