@@ -4,6 +4,14 @@ let word_pointer_old = 0;
 let word_line_old = 0;
 let mode = "NORMAL";
 
+function test() {
+    alert('test');
+}
+
+function test_a() {
+    alert('test_a');
+}
+
 let pointer_update = function()
 {
     document.querySelector('#dek-text')
@@ -207,38 +215,34 @@ let dek_new = function()
 
 let dek_save = function()
 {
-    let obj_array = [];
     let childs_length = document.querySelector('#dek-text').childElementCount;
     let childs = document.querySelector('#dek-text').children;
+    if (childs == undefined)
+        return;
 
+    let string_send = "";
     let i;
     for (i = 0; i < childs_length; i++)
     {
-        obj_array.push({ sword: childs[i].children[0].textContent, dword: childs[i].children[1].textContent });
+        string_send += childs[i].children[0].textContent + ':' + childs[i].children[1].textContent + ',';
     }
-
-    let obj_str = JSON.stringify(obj_array);
-    /*
-    window.localStorage.setItem(document.querySelector('#file-name').textContent, obj_str);
-    */
 
     const url = '/save';
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+    xhr.setRequestHeader('Content-Type', 'text/plain');
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === XMLHttpRequest.DONE) {
-            if (xhr.status === 204) {
-                document.querySelector('info').textContent = 'send succsessful';
+            if (xhr.status === 201) {
             } else {
-                console.error('Fehler beim POST-Request');
+                console.error('/save error');
             }
         }
     };
 
-    xhr.send(document.querySelector('#file-name').textContent + ";" + obj_str);
+    xhr.send(document.querySelector('#file-name').textContent + ";" + string_send);
 }
 
 let dek_open = function()
@@ -247,75 +251,11 @@ let dek_open = function()
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === XMLHttpRequest.DONE) {
-            if (xhr.status === 302) {
-                console.log('POST-Request erfolgreich');
-                document.querySelector('#dek-text').innerHTML = '';
-                let dek_list = document.querySelector('#dek-text');
-                let container = document.createElement('div');
-                container.className = "container";
-                dek_list.appendChild(container);
-
-                let array = xhr.responseText.split(',');
-                if (array == "")
-                {
-                    let p = document.createElement('p');
-                    p.textContent = 'Empty';
-                    container.appendChild(p);
-                    return;
-                }
-                array.forEach((item, index) => {
-                    let container_item = document.createElement('div');
-                    container_item.className = "container-item";
-                    let p = document.createElement('p');
-                    p.textContent = item;
-                    let close = document.createElement('button');
-                    close.addEventListener('click', (e) => {
-                        dek_delete(item);
-                    });
-                    container_item.append(p, close);
-
-                    p.addEventListener('click', (e) => { 
-                        let file_name_label = document.querySelector('#file-name');
-                        file_name_label.textContent = e.target.textContent;
-
-                        const url = '/load';
-
-                        const xhr = new XMLHttpRequest();
-                        xhr.open('POST', url, true);
-                        xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
-
-                        xhr.onreadystatechange = function () {
-                            if (xhr.readyState === XMLHttpRequest.DONE) {
-                                if (xhr.status === 200) {
-                                    console.log('POST-Request erfolgreich');
-                                    console.log('Antwort vom Server:', xhr.responseText);
-
-                                    let dek_obj_array = JSON.parse(xhr.responseText);
-                                    document.querySelector('#dek-text').innerHTML = "";
-                                    word_pointer = 0;
-                                    dek_obj_array.forEach((item) => {
-                                        dek_object_append(item.sword, item.dword);
-                                        word_pointer++;
-                                    });
-                                    word_pointer = 0;
-                                    word_line = 0;
-                                    pointer_update();
-                                } else {
-                                    console.error('Fehler beim POST-Request');
-                                }
-                            }
-                        };
-
-                        xhr.send(file_name_label.textContent);
-
-                    });
-                    container.append(container_item);
-                });
-                console.log('Antwort vom Server:', xhr.responseText);
+            if (xhr.status === 200) {
+                location.reload();
             } else {
                 console.error('Fehler beim POST-Request');
             }
@@ -326,28 +266,72 @@ let dek_open = function()
     return;
 }
 
-let dek_delete = function(name) {
-    const url = '/delete';
+let dek_load = function(object)
+{
+    const url = '/load';
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+    xhr.setRequestHeader('Content-Type', 'text/plain');
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === XMLHttpRequest.DONE) {
             if (xhr.status === 200) {
                 console.log('POST-Request erfolgreich');
-                console.log('Antwort vom Server:', xhr.responseText);
-                dek_open();
+                location.reload();
+
+                /*
+                let dek_obj_array = JSON.parse(xhr.responseText);
+                document.querySelector('#dek-text').innerHTML = "";
+                word_pointer = 0;
+                dek_obj_array.forEach((item) => {
+                    dek_object_append(item.sword, item.dword);
+                    word_pointer++;
+                });
+                word_pointer = 0;
+                word_line = 0;
+                pointer_update();
+                */
             } else {
                 console.error('Fehler beim POST-Request');
             }
         }
     };
 
-    xhr.send(name);
+    xhr.send(object.target.textContent);
 }
 
+let dek_delete = function(name) {
+    const url = '/delete';
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader('Content-Type', 'text/plain');
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            if (xhr.status === 200) {
+                location.reload();
+            } else {
+                console.error('Fehler beim POST-Request');
+            }
+        }
+    };
+
+    xhr.send(name.target.parentElement.children[0].textContent);
+}
+
+let dek_import = function() {
+    let text = prompt();
+    text = text.replace(/\n/g, ' ');
+    let array = text.split(' ');
+    array.forEach((item) => {
+        if (item != "") {
+            dek_object_append(item);
+            word_pointer++;
+        }
+    });
+}
 
 window.onload = function()
 {

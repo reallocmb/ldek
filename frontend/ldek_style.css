@@ -21,13 +21,14 @@ img {
     display: flex;
     flex-wrap: wrap;
     row-gap: 15px;
-    background-clor: gray;
+    background-color: gray;
 }
 
-.dek-object {
-    background-color: blue;
-    border-top: 1px solid black;
-    border-bottom: 1px solid black;
+#dek-open {
+}
+
+.dek-item {
+    display: flex;
 }
 
 .word-object {

@@ -8,17 +8,24 @@
         <link rel="icon" type="image/png" href="res/icon.png" sizes="32x32">
     </head>
     <body>
+        <a href="/">
         <img src="res/icon.png"/><hr>
+        </a>
         <div id="dek-text">
+            {{dek_text_content}}
+        </div>
+        <div id="dek-open">
+            {{dek_open_content}}
         </div>
         <p id="info"></p>
         <div id="status-line">
             <p id="mode-display">NORMAL</p>
-            <label id="file-name"></label>
+            <label id="file-name">{{content_file_name}}</label>
             <div id="buttons">
                 <button onclick="dek_new(event);">NEW</button>
                 <button onclick="dek_save(event)">SAVE</button>
                 <button onclick="dek_open(event)">OPEN</button>
+                <button onclick="dek_import(event)">IMPORT</button>
                 <button onclick="dek_delete(event)">DEL</button>
                 <!--
                 <button onclick="dek_save_file(event)">SAVE_FILE</button>
