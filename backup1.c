@@ -4,11 +4,12 @@
 #include<string.h>
 #include<stdbool.h>
 #include<netdb.h>
-#include <sys/select.h>
-#include <sys/socket.h>
 #include<unistd.h>
 #include<sys/stat.h>
 #include<dirent.h>
+
+FILE *log_file;
+#define LOG_FILE log_file
 
 /* Ansi Escape Codes */
 #define ANSI_ESCAPE_COLOR_RED "\033[31m"
@@ -43,45 +44,11 @@ typedef struct Header {
 typedef struct Request {
     char ip_address[100];
     char data[REQUEST_SIZE_MAX + 1];
-    uint32_t data_size;
     Header *header;
     uint32_t payload_size;
     char *payload;
     char cookie_session[37];
 } Request;
-
-typedef struct {
-    Request request;
-    int32_t socket;
-} Client;
-
-Client clients[100];
-uint32_t clients_count = 0;
-
-void clients_append(int32_t socket)
-{
-    clients[clients_count].request.data_size = 0;
-    clients[clients_count].socket = socket;
-    clients_count++;
-}
-
-void clients_remove(int32_t index)
-{
-    uint32_t i;
-    for (i = 0; i < clients_count; i++)
-        if (index == i)
-            for (; i < clients_count - 1; i++)
-                clients[i] = clients[i + 1];
-    clients_count--;
-}
-
-void clients_debug(void)
-{
-    printf("Clients->socket:\n");
-    uint32_t i;
-    for (i = 0; i < clients_count; i++)
-        printf("[%d]: %d\n", i, clients[i].socket);
-}
 
 /* globals */
 char *ldek_data_file_path_current;
@@ -286,10 +253,6 @@ void response_send_header(int16_t client_socket, char *header, char *value)
 bool request_parse(Request *request)
 {
     request->payload = strstr(request->data, "\r\n\r\n");
-    if (request->payload == NULL)
-        return false;
-    if (strstr(request->payload, "\r\n\r\n") == NULL)
-        return false;
     request->payload += 4;
 
     uint32_t header_data_size = request->payload - request->data;
@@ -378,9 +341,9 @@ void request_send(int16_t socket_client, Request *request)
 {
     char *first_line_end = strstr(request->data, "\r\n");
     if (first_line_end)
-        fprintf(stdout, "Request <- %.*s\n", (int)(first_line_end - request->data), request->data);
+        fprintf(LOG_FILE, "Request <- %.*s\n", (int)(first_line_end - request->data), request->data);
     else
-        fprintf(stdout, "Request <- %s\n", request->data);
+        fprintf(LOG_FILE, "Request <- %s\n", request->data);
 
     if (strncmp(request->data, "GET", 3) == 0)
     {
@@ -399,7 +362,7 @@ void request_send(int16_t socket_client, Request *request)
             };
             response_send_file_chunked_dynamic(socket_client, "index.html", content_dynamics, 3);
 
-            fprintf(stdout, ANSI_ESCAPE_COLOR_GREEN "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Chunked File: index.html -> Response\n", RESPONSE_CODE_200);
+            fprintf(LOG_FILE, ANSI_ESCAPE_COLOR_GREEN "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Chunked File: index.html -> Response\n", RESPONSE_CODE_200);
             return;
         }
 
@@ -412,7 +375,7 @@ void request_send(int16_t socket_client, Request *request)
             write(socket_client, "\r\n", 2);
             response_send_file_chunked(socket_client, "ldek_style.css");
 
-            fprintf(stdout, ANSI_ESCAPE_COLOR_GREEN "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Chunked File: ldek_style.css -> Response\n", RESPONSE_CODE_200);
+            fprintf(LOG_FILE, ANSI_ESCAPE_COLOR_GREEN "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Chunked File: ldek_style.css -> Response\n", RESPONSE_CODE_200);
             return;
         }
 
@@ -425,7 +388,7 @@ void request_send(int16_t socket_client, Request *request)
             write(socket_client, "\r\n", 2);
             response_send_file_chunked(socket_client, "ldek.js");
 
-            fprintf(stdout, ANSI_ESCAPE_COLOR_GREEN "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Chunked File: ldek.js -> Response\n", RESPONSE_CODE_200);
+            fprintf(LOG_FILE, ANSI_ESCAPE_COLOR_GREEN "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Chunked File: ldek.js -> Response\n", RESPONSE_CODE_200);
             return;
         }
 
@@ -438,14 +401,14 @@ void request_send(int16_t socket_client, Request *request)
             write(socket_client, "\r\n", 2);
             response_send_file_chunked(socket_client, "res/icon.png");
 
-            fprintf(stdout, ANSI_ESCAPE_COLOR_GREEN "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Chunked File: res/icon.png -> Response\n", RESPONSE_CODE_200);
+            fprintf(LOG_FILE, ANSI_ESCAPE_COLOR_GREEN "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Chunked File: res/icon.png -> Response\n", RESPONSE_CODE_200);
             return;
         }
 
         response_send_code(socket_client, RESPONSE_CODE_404);
         response_send_header(socket_client, "Content-Length", "0");
         write(socket_client, "\r\n\r\n", 4);
-        fprintf(stdout, ANSI_ESCAPE_COLOR_RED "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Response\n", RESPONSE_CODE_404);
+        fprintf(LOG_FILE, ANSI_ESCAPE_COLOR_RED "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Response\n", RESPONSE_CODE_404);
         return;
     }
 
@@ -467,11 +430,9 @@ void request_send(int16_t socket_client, Request *request)
             chdir("../frontend");
 
             response_send_code(socket_client, RESPONSE_CODE_201);
-            response_send_header(socket_client, "Connection", "close");
-            response_send_header(socket_client, "Content-Type", "text/plain");
             response_send_header(socket_client, "Content-Length", "0");
             write(socket_client, "\r\n\r\n", 4);
-            fprintf(stdout, ANSI_ESCAPE_COLOR_GREEN "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Response\n", RESPONSE_CODE_201);
+            fprintf(LOG_FILE, ANSI_ESCAPE_COLOR_GREEN "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Response\n", RESPONSE_CODE_201);
 
             return;
         }
@@ -493,9 +454,8 @@ void request_send(int16_t socket_client, Request *request)
             response_send_code(socket_client, RESPONSE_CODE_200);
             response_send_header(socket_client, "Connection", "close");
             response_send_header(socket_client, "Content-Type", "text/plain");
-            response_send_header(socket_client, "Content-Length", "0");
             write(socket_client, "\r\n\r\n", 4);
-            fprintf(stdout, ANSI_ESCAPE_COLOR_GREEN "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Response\n", RESPONSE_CODE_200);
+            fprintf(LOG_FILE, ANSI_ESCAPE_COLOR_GREEN "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Response\n", RESPONSE_CODE_200);
 
             return;
         }
@@ -511,14 +471,13 @@ void request_send(int16_t socket_client, Request *request)
             response_send_header(socket_client, "Connection", "close");
             response_send_header(socket_client, "Location", "/");
             write(socket_client, "\r\n\r\n", 4);
-            fprintf(stdout, ANSI_ESCAPE_COLOR_ORANGE "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Response\n", RESPONSE_CODE_307);
+            fprintf(LOG_FILE, ANSI_ESCAPE_COLOR_ORANGE "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Response\n", RESPONSE_CODE_307);
 #else
             response_send_code(socket_client, RESPONSE_CODE_200);
             response_send_header(socket_client, "Connection", "close");
             response_send_header(socket_client, "Content-Type", "text/plain");
-            response_send_header(socket_client, "Content-Length", "0");
             write(socket_client, "\r\n\r\n", 4);
-            fprintf(stdout, ANSI_ESCAPE_COLOR_GREEN "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Response\n", RESPONSE_CODE_200);
+            fprintf(LOG_FILE, ANSI_ESCAPE_COLOR_GREEN "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Response\n", RESPONSE_CODE_200);
 #endif
 
             return;
@@ -529,7 +488,7 @@ void request_send(int16_t socket_client, Request *request)
             content_dynamic_func_set(&content_dynamic_dek_open, index_html_content_dynamic_open_func);
 
             chdir("../data");
-            fprintf(stdout, "delete test: %s\n", request->payload);
+            fprintf(LOG_FILE, "delete test: %s\n", request->payload);
             remove(request->payload);
             chdir("../frontend");
             write(socket_client, "\r\n\r\n", 4);
@@ -539,14 +498,12 @@ void request_send(int16_t socket_client, Request *request)
             response_send_header(socket_client, "Connection", "close");
             response_send_header(socket_client, "Location", "/");
             write(socket_client, "\r\n\r\n", 4);
-            fprintf(stdout, ANSI_ESCAPE_COLOR_ORANGE "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Response\n", RESPONSE_CODE_307);
+            fprintf(LOG_FILE, ANSI_ESCAPE_COLOR_ORANGE "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Response\n", RESPONSE_CODE_307);
 #else
             response_send_code(socket_client, RESPONSE_CODE_200);
             response_send_header(socket_client, "Connection", "close");
-            response_send_header(socket_client, "Content-Type", "text/plain");
-            response_send_header(socket_client, "Content-Length", "0");
             write(socket_client, "\r\n\r\n", 4);
-            fprintf(stdout, ANSI_ESCAPE_COLOR_GREEN "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Response\n", RESPONSE_CODE_200);
+            fprintf(LOG_FILE, ANSI_ESCAPE_COLOR_GREEN "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Response\n", RESPONSE_CODE_200);
 #endif
 
             return;
@@ -556,7 +513,7 @@ void request_send(int16_t socket_client, Request *request)
     response_send_code(socket_client, RESPONSE_CODE_403);
     response_send_header(socket_client, "Content-Length", "0");
     write(socket_client, "\r\n\r\n", 4);
-    fprintf(stdout, ANSI_ESCAPE_COLOR_RED "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Response\n", RESPONSE_CODE_403);
+    fprintf(LOG_FILE, ANSI_ESCAPE_COLOR_RED "%s" ANSI_ESCAPE_COLOR_DEFAULT " -> Response\n", RESPONSE_CODE_403);
     
 }
 
@@ -587,57 +544,31 @@ int main(int argc, char **argv)
     struct sockaddr address_client;
     uint32_t address_client_length = sizeof(address_client);
 
-
-    while (1)
+    for (;;)
     {
-        fd_set sockets;
-        FD_ZERO(&sockets);
-        FD_SET(server_socket, &sockets);
-        uint32_t sockets_max = server_socket;
+        log_file = fopen("log_file", "a+");
 
-        int32_t i;
-        for (i = 0; i < clients_count; i++)
+        int8_t socket_client = accept(server_socket, &address_client, &address_client_length);
+        getnameinfo(&address_client, sizeof(address_client), request.ip_address, sizeof(request.ip_address), 0, 0, NI_NUMERICHOST);
+        fprintf(LOG_FILE, ANSI_ESCAPE_COLOR_BLUE "Open IP: %s\n" ANSI_ESCAPE_COLOR_DEFAULT, request.ip_address);
+        uint16_t bytes_received = read(socket_client, request.data, REQUEST_SIZE_MAX);
+        request.data[bytes_received] = 0;
+        if (bytes_received < 1)
         {
-            FD_SET(clients[i].socket, &sockets);
-            if (clients[i].socket > sockets_max)
-                sockets_max = clients[i].socket;
+            fprintf(LOG_FILE, "Unexpected disconnection\n");
+            fprintf(stdout, "%s\n", request.data);
         }
+        else if (request_parse(&request))
+        {
+            request_send(socket_client, &request);
+        }
+        else
+            fprintf(LOG_FILE, "Request was not valid\n");
 
-        clients_debug();
-        select(sockets_max + 1, &sockets, 0, 0, 0);
-        if (FD_ISSET(server_socket, &sockets))
-        {
-            int16_t client_socket = accept(server_socket, &address_client, &address_client_length);
-            getnameinfo(&address_client, sizeof(address_client), request.ip_address, sizeof(request.ip_address), 0, 0, NI_NUMERICHOST);
-            fprintf(stdout, ANSI_ESCAPE_COLOR_BLUE "Open IP: %s\n" ANSI_ESCAPE_COLOR_DEFAULT, request.ip_address);
-            clients_append(client_socket);
-            FD_SET(client_socket, &sockets);
-            if (client_socket > sockets_max)
-                sockets_max = client_socket;
-        }
-        for (i = 0; i < clients_count; i++)
-        {
-            if (FD_ISSET(clients[i].socket, &sockets))
-            {
-                int32_t bytes_received = read(clients[i].socket, clients[i].request.data + clients[i].request.data_size, REQUEST_SIZE_MAX);
-                clients[i].request.data[bytes_received] = 0;
+        close(socket_client);
+        fprintf(LOG_FILE, ANSI_ESCAPE_COLOR_MAGENTA "Close IP: %s\n" ANSI_ESCAPE_COLOR_DEFAULT, request.ip_address);
 
-                if (bytes_received < 1)
-                {
-                    fprintf(stdout, "Unexpected disconnection\n");
-                    fprintf(stdout, ANSI_ESCAPE_COLOR_MAGENTA "Close IP: %s\n" ANSI_ESCAPE_COLOR_DEFAULT, clients[i].request.ip_address);
-                    close(clients[i].socket);
-                    clients_remove(i);
-                }
-                else if (request_parse(&clients[i].request))
-                {
-                    printf("socked: %d\n", clients[i].socket);
-                    request_send(clients[i].socket, &clients[i].request);
-                }
-                else
-                    clients[i].request.data_size += bytes_received;
-            }
-        }
+        fclose(log_file);
     }
 
     return 0;
