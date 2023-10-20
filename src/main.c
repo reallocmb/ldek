@@ -60,6 +60,7 @@ uint32_t clients_count = 0;
 
 void clients_append(int32_t socket)
 {
+    clients[clients_count].request.payload = NULL;
     clients[clients_count].request.data_size = 0;
     clients[clients_count].socket = socket;
     clients_count++;
@@ -285,12 +286,13 @@ void response_send_header(int16_t client_socket, char *header, char *value)
 
 bool request_parse(Request *request)
 {
-    request->payload = strstr(request->data, "\r\n\r\n");
     if (request->payload == NULL)
-        return false;
-    if (strstr(request->payload, "\r\n\r\n") == NULL)
-        return false;
-    request->payload += 4;
+    {
+        request->payload = strstr(request->data, "\r\n\r\n");
+        if (request->payload == NULL)
+            return false;
+        request->payload += 4;
+    }
 
     uint32_t header_data_size = request->payload - request->data;
     Header header;
@@ -298,6 +300,9 @@ bool request_parse(Request *request)
         sscanf(header.value, "%u", &request->payload_size);
     else
         request->payload_size = 0;
+
+    if (request->data_size < header_data_size + request->payload_size)
+        return false;
 
     if (request->payload - request->data + request->payload_size >= REQUEST_SIZE_MAX)
     {
@@ -619,9 +624,12 @@ int main(int argc, char **argv)
         {
             if (FD_ISSET(clients[i].socket, &sockets))
             {
-                int32_t bytes_received = read(clients[i].socket, clients[i].request.data + clients[i].request.data_size, REQUEST_SIZE_MAX);
-                clients[i].request.data[bytes_received] = 0;
+                int32_t bytes_received = read(clients[i].socket, clients[i].request.data + clients[i].request.data_size, 500);
+                clients[i].request.data_size += bytes_received;
+                clients[i].request.data[clients[i].request.data_size] = 0;
 
+                if (clients[i].request.data_size > REQUEST_SIZE_MAX)
+                    fprintf(stderr, "max request size overflow\n");
                 if (bytes_received < 1)
                 {
                     fprintf(stdout, "Unexpected disconnection\n");
@@ -634,8 +642,6 @@ int main(int argc, char **argv)
                     printf("socked: %d\n", clients[i].socket);
                     request_send(clients[i].socket, &clients[i].request);
                 }
-                else
-                    clients[i].request.data_size += bytes_received;
             }
         }
     }
