@@ -278,21 +278,8 @@ let dek_load = function(object)
     xhr.onreadystatechange = function () {
         if (xhr.readyState === XMLHttpRequest.DONE) {
             if (xhr.status === 200) {
-                console.log('POST-Request erfolgreich');
                 location.reload();
 
-                /*
-                let dek_obj_array = JSON.parse(xhr.responseText);
-                document.querySelector('#dek-text').innerHTML = "";
-                word_pointer = 0;
-                dek_obj_array.forEach((item) => {
-                    dek_object_append(item.sword, item.dword);
-                    word_pointer++;
-                });
-                word_pointer = 0;
-                word_line = 0;
-                pointer_update();
-                */
             } else {
                 console.error('Fehler beim POST-Request');
             }

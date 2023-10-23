@@ -27,7 +27,7 @@
 #define RESPONSE_CODE_403 "HTTP/1.1 403 Forbidden"
 #define RESPONSE_CODE_404 "HTTP/1.1 404 Not Found"
 
-#define REQUEST_SIZE_MAX 5000
+#define REQUEST_SIZE_MAX 524288
 
 typedef struct ContentDynamic {
     char *identify;
@@ -62,6 +62,7 @@ void clients_append(int32_t socket)
 {
     clients[clients_count].request.payload = NULL;
     clients[clients_count].request.data_size = 0;
+    clients[clients_count].request.payload_size = 0;
     clients[clients_count].socket = socket;
     clients_count++;
 }
@@ -298,8 +299,6 @@ bool request_parse(Request *request)
     Header header;
     if (header_find(&header, request->data, header_data_size, "Content-Length"))
         sscanf(header.value, "%u", &request->payload_size);
-    else
-        request->payload_size = 0;
 
     if (request->data_size < header_data_size + request->payload_size)
         return false;
