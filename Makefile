@@ -8,7 +8,7 @@ version = gnu89
 
 release_flags = -std=$(version) -O3 -DRELEASE
 
-develop_flags = -Wall -std=$(version) -g -Wextra
+develop_flags = -Wall -Wextra -std=$(version) -g
 
 source_dir = src
 object_dir = obj
