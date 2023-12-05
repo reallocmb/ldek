@@ -562,11 +562,25 @@ void request_send(int16_t socket_client, Request *request)
     
 }
 
+bool whitelist_check(char *ip_address)
+{
+    FILE *f = fopen("whitelist", "rb");
+    char *line;
+    size_t length = 100;
+    line = malloc(length * sizeof(*line));
+    while (getline(&line, &length, f) != -1)
+        if (strncmp(line, ip_address, strlen(line) - 1) == 0)
+            return true;
+    fclose(f);
+    free(line);
+
+    return false;
+}
+
 int main(int argc, char **argv)
 {
     mkdir("data", 0777);
     chdir("frontend");
-
 
     Request request;
 
@@ -612,10 +626,18 @@ int main(int argc, char **argv)
             int16_t client_socket = accept(server_socket, &address_client, &address_client_length);
             getnameinfo(&address_client, sizeof(address_client), request.ip_address, sizeof(request.ip_address), 0, 0, NI_NUMERICHOST);
             fprintf(stdout, ANSI_ESCAPE_COLOR_BLUE "Open IP: %s\n" ANSI_ESCAPE_COLOR_DEFAULT, request.ip_address);
-            clients_append(client_socket);
-            FD_SET(client_socket, &sockets);
-            if (client_socket > sockets_max)
-                sockets_max = client_socket;
+            if (whitelist_check(request.ip_address))
+            {
+                clients_append(client_socket);
+                FD_SET(client_socket, &sockets);
+                if (client_socket > sockets_max)
+                    sockets_max = client_socket;
+            }
+            else
+            {
+                fprintf(stdout, ANSI_ESCAPE_COLOR_MAGENTA "Close IP: %s\n" ANSI_ESCAPE_COLOR_DEFAULT, clients[i].request.ip_address);
+                close(client_socket);
+            }
         }
         for (i = 0; i < clients_count; i++)
         {
